@@ -6,7 +6,7 @@ const ListTodos = () => {
     console.log(data.listID);
     return (
         <div>
-            <h1>Todo List Items</h1>
+            <h1>{data.listID}</h1>
         </div>
     )
 }

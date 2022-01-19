@@ -4,67 +4,81 @@ import { ImCross } from "react-icons/im";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
+import { Container, Row, Col, Form, Button, Table } from "react-bootstrap";
+import { addList, deleteData, editList } from "./redux/actions";
+
 const ListNamesPage = () => {
-  const allNames = useSelector((state) => state.ListsReducer.allListNames);
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
   const dispatch = useDispatch();
+
+  const allData = useSelector((state) => state.ListsReducer);
+
+  const [listName, setListName] = useState("");
+  const [listDate, setListDate] = useState("");
   const [editFlag, setEditFlag] = useState(false);
-  const [editObject,setEditObject] = useState(null)
-  
-  let editListHandler = (id) => {
+  const [editObject, setEditObject] = useState();
+
+  const editListHandler = (id) => {
     setEditFlag(true);
-    const editListObject = allNames.find((each) => each.id === id);
-    //   console.log(editListObject);
-    setTitle(editListObject.title);
-    setDate(editListObject.date);
-    setEditObject(editListObject)
+    const editListObject = allData.find((each) => each.listID == id);
+    setListName(editListObject.listName);
+    setListDate(editListObject.listDate);
+    setEditObject(editListObject);
   };
-console.log(editObject);
-  let deleteListHandler = (id) => {
-    console.log(id);
+
+  const handleSubmit = () => {
+    editFlag
+      ? dispatch(editList(editObject.listID, listName, listDate))
+      : dispatch(addList(Date.now(), listName, listDate));
+
+    setListName("");
+    setListDate("");
+    setEditFlag(false);
   };
 
   return (
-    <div className="container">
-      <form className="form-inline my-4">
-        <input
-          type="text"
-          className="col-md-5 mx-3"
-          name="listName"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <input
-          type="date"
-          className="col-md-5 mx-3"
-          name="listName"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => {
-            editFlag
-              ? dispatch({
-                  type: "EDIT_LIST",
-                  data: { id: editObject.id , title: title, date: date },
-                })
-              : dispatch({
-                  type: "ADD_LIST",
-                  data: { id: Date.now(), title: title, date: date },
-                });
+    <Container>
+      <Row className="my-2">
+        <h1>List Names</h1>
+      </Row>
+      <Form className="my-4">
+        <Row>
+          <Col>
+            <Form.Group>
+              <Form.Control
+                type="text"
+                placeholder="Enter list name"
+                id="listName"
+                name="listName"
+                value={listName}
+                onChange={(e) => setListName(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+          <Col>
+            <Form.Group>
+              <Form.Control
+                type="date"
+                id="listDate"
+                placeholder="Enter list date"
+                name="listDate"
+                value={listDate}
+                onChange={(e) => setListDate(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+          <Col>
+            <Button
+              type="button"
+              className={`btn btn-primary ${listName.length < 1 && "disabled"}`}
+              onClick={handleSubmit}
+            >
+              {editFlag ? "Update" : "Add"}
+            </Button>
+          </Col>
+        </Row>
+      </Form>
 
-            setTitle("");
-            setDate("");
-            setEditFlag(false)
-          }}
-        >
-          {editFlag ? "Update" : "Add"}
-        </button>
-      </form>
-      <table className="table table-borderless table-striped">
+      <Table striped bordered hover>
         <thead>
           <tr>
             <th>Name</th>
@@ -74,21 +88,21 @@ console.log(editObject);
           </tr>
         </thead>
         <tbody>
-          {allNames.map((each) => {
+          {allData.map((each) => {
             return (
-              <tr key={each.id}>
-                <td>
-                  <Link to={`/ListTodos/${each.id}`}>{each.title}</Link>
+              <tr key={each.listID}>
+                <td className="text-capitalize">
+                  <Link to={`/ListTodos/${each.listID}`}>{each.listName}</Link>
                 </td>
-                <td>{each.date}</td>
+                <td>{each.listDate}</td>
                 <td
-                  onClick={() => editListHandler(each.id)}
+                  onClick={() => editListHandler(each.listID)}
                   style={{ cursor: "pointer", color: "blue" }}
                 >
                   {<GoPencil />}
                 </td>
                 <td
-                  onClick={() => deleteListHandler(each.id)}
+                  onClick={() => dispatch(deleteData(each.listID))}
                   style={{ cursor: "pointer", color: "red" }}
                 >
                   {<ImCross />}
@@ -97,8 +111,8 @@ console.log(editObject);
             );
           })}
         </tbody>
-      </table>
-    </div>
+      </Table>
+    </Container>
   );
 };
 
